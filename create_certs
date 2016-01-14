@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Create root CA private key and then root CA:
+openssl genrsa -out rootCA.key 2048
+openssl req -x509 -new -nodes -key rootCA.key -sha256 -out rootCA.crt -subj "/C=SE/ST=Denial/L=Springfield/O=Dis/CN=127.0.0.1"
+
+# Create server cert signed with the root CA:
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr -subj "/C=SE/ST=Denial/L=Springfield/O=Dis/CN=127.0.0.1"
+openssl x509 -req -in server.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out server.crt -sha256
+
+# Create client cert signed with the root CA:
+openssl genrsa -out client.key 2048
+openssl req -new -key client.key -out client.csr -subj "/C=SE/ST=Denial/L=Springfield/O=Dis/CN=127.0.0.1"
+openssl x509 -req -in client.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out client.crt -sha256
+
+# Convert key format from OpenSSL format to standard format
+openssl pkcs8 -topk8 -in server.key -out servernew.key -nocrypt
+mv servernew.key server.key
+openssl pkcs8 -topk8 -in client.key -out clientnew.key -nocrypt
+mv clientnew.key client.key
